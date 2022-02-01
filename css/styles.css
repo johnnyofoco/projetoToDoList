@@ -52,6 +52,14 @@ body{
   transition: backgrou-color 300ms ease;
 }
 
+.wrapper-list ul.list li.removed{
+  animation: collapseItem 300ms ease;
+}
+
+.wrapper-list ul.list li.hidden{
+  display: none;
+}
+
 .wrapper-list ul.list li:hover{
   background-color: #323b5c;
 }
@@ -129,4 +137,14 @@ body{
 
 footer #inputTask{
   font-size: 1.6em;
+}
+
+@keyframes collapseItem {
+  0%{
+    transform: rotateX(0deg);
+  }
+
+  100%{
+    transform: rotateX(-90deg);
+  }
 }
