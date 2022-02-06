@@ -1,7 +1,11 @@
 const Main = {
+  tasks: [],
+
   init: function () {
     this.cacheSelectors()
     this.bindEvents()
+    this.getStoraged()
+    this.buildTasks()
   },
 
   cacheSelectors: function () {
@@ -21,8 +25,49 @@ const Main = {
     this.$inputTask.onkeypress = self.Events.inputTask_keypress.bind(this)
 
     this.$removeButtons.forEach(function (button) {
-      button.onclick = self.Events.removeButton_click
+      button.onclick = self.Events.removeButton_click.bind(self)
     })
+  },
+
+  getStoraged: function () {
+    const tasks = localStorage.getItem('tasks')
+
+    if (tasks) {
+      this.tasks = JSON.parse(tasks)
+    } else {
+      localStorage.setItem('tasks', JSON.stringify([]))
+    }
+  },
+
+  getTaskHtml: function (task) {
+    return `
+          <li>
+            <div class='check'></div>
+            <label class='task'>
+            ${task}
+            </label>
+            <button class='remove' data-task='${task}'></button>
+          </li>    
+        `
+  },
+
+  insertHTML: function (element, htmlString) {
+    element.innerHTML += htmlString
+    this.cacheSelectors()
+    this.bindEvents()
+  },
+
+  buildTasks: function () {
+    let html = ''
+
+    this.tasks.forEach(item => {
+      html += this.getTaskHtml(item.task)
+    })
+
+    this.$list.innerHTML = html
+
+    this.cacheSelectors()
+    this.bindEvents()
   },
 
   Events: {
@@ -40,28 +85,43 @@ const Main = {
     inputTask_keypress: function (e) {
       const key = e.key
       const value = e.target.value
+      const isDone = false
 
       if (key === 'Enter') {
-        this.$list.innerHTML += `
-          <li>
-            <div class='check'></div>
-            <label class='task'>
-            ${value}
-            </label>
-            <button class='remove'></button>
-          </li>    
-        `
+        const taskHtml = this.getTaskHtml(value, isDone)
+
+        this.insertHTML(this.$list, taskHtml)
+
         e.target.value = ''
 
-        this.cacheSelectors()
-        this.bindEvents()
+        const savedTasks = localStorage.getItem('tasks')
+        const savedTasksArr = JSON.parse(savedTasks)
+
+        const arrTasks = [
+          { task: value, done: isDone },
+          ...savedTasksArr //spread operation
+        ]
+
+        const jsonTasks = JSON.stringify(arrTasks)
+
+        this.tasks = arrTasks
+        localStorage.setItem('tasks', jsonTasks)
       }
     },
 
     removeButton_click: function (e) {
-      let li = e.target.parentElement
+      const li = e.target.parentElement
+      const value = e.target.dataset['task']
+
+       const newTasksState = this.tasks.filter(item => {
+        return item.task !== value
+      })
+
+      localStorage.setItem('tasks', JSON.stringify(newTasksState))
+      this.tasks = newTasksState
+
       li.classList.add('removed')
-      
+
       setTimeout(function () {
         li.classList.add('hidden')
       }, 300)
